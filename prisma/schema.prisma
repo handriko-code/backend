@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          Role
+  referralCode  String    @unique
+  points        Int       @default(0)
+  profilePic    String?   // profile picture URL
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  referrals     Referral[]   @relation("Referrals")       // Relasi ke Referral (yang merujuk/orang yang mengajak)
+  referredBy    Referral[]   @relation("ReferredBy")      // Relasi ke Referral (yang dirujuk)
+  events        Event[]    @relation("OrganizerEvents")
+  coupons       Coupon[]   @relation("UserCoupons")  // Relasi tambahan untuk coupon
+  transactions  Transaction[] @relation("UserTransactions") // Relasi ke Transaction
+}
+
+model Referral {
+  id            String   @id @default(cuid())
+  userId        String
+  referredUserId String
+  createdAt     DateTime @default(now())
+
+  user          User     @relation("Referrals", fields: [userId], references: [id])//orang yang mengajak (referer)
+  referredUser  User     @relation("ReferredBy", fields: [referredUserId], references: [id]) // orang yang diajak (referred)
+}
+
+model Coupon {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  discount     Int       // % discount
+  userId       String
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation("UserCoupons", fields: [userId], references: [id])
+}
+
+model Event {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  date           DateTime
+  totalSeats     Int
+  availableSeats Int
+  location       String
+  organizerId    String
+  price          Int       @default(0)
+  organizer      User      @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  transactions   Transaction[] // Relasi ke Transaction
+}
+
+model Transaction {
+  id           String   @id @default(cuid())
+  userId       String
+  eventId      String
+  quantity     Int
+  totalPrice   Int
+  status       TransactionStatus
+  paymentProof String?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation("UserTransactions", fields: [userId], references: [id])
+  event        Event     @relation(fields: [eventId], references: [id])
+  
+}
+
+enum Role {
+  CUSTOMER
+  ORGANIZER
+}
+
+enum TransactionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}

@@ -1,0 +1,74 @@
+import { prisma } from '../lib/prisma';
+import { RegisterDTO, LoginDTO } from '../interfaces/auth.interface';
+import { hashPassword, comparePassword } from '../utils/hash';
+import { signToken } from '../utils/jwt';
+import { generateReferralCode } from '../utils/referral';
+import { createReferralAndReward } from './referralService';
+import { createWelcomeCoupon } from './couponService';
+import { sendEmail } from '../utils/email';
+import { Param } from '@prisma/client/runtime/library';
+
+import handlebars from 'handlebars';
+import path from 'path';
+import fs from 'fs';
+
+
+export const register = async (data: RegisterDTO) => {
+  const { email, password, name, role, referralCode } = data;
+
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) throw new Error('Email already registered.');
+
+  const hashedPassword = await hashPassword(password);
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      referralCode: generateReferralCode(),
+    },
+  });
+
+  //untuk hadlebars dan nodemailer
+  const templatePath = path.join(
+    __dirname, // artinya mnunjuk pada direktory saat ini services/authServices.ts
+    "../templates",
+    "register-template.hbs"
+  );
+
+  const templateSource = fs.readFileSync(templatePath, 'utf-8');
+  const compiledTemplate = handlebars.compile(templateSource);
+  const html = compiledTemplate({name:user.name, email: user.email})
+
+  await sendEmail(
+    user.email,
+    'Welcome to Event App!',
+    'Thanks for registering at Event Application',
+    html
+  );
+  
+
+  if (referralCode) {
+    await createReferralAndReward(referralCode, user.id);
+  }
+
+  await createWelcomeCoupon(user.id);
+
+  const token = signToken({ id: user.id, role: user.role });
+  return { token, user };
+};
+
+export const login = async (data: LoginDTO) => {
+  const { email, password } = data;
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('Invalid credentials.');
+
+  const isPasswordValid = await comparePassword(password, user.password);
+  if (!isPasswordValid) throw new Error('Invalid credentials.');
+
+  const token = signToken({ id: user.id, role: user.role });
+  return { token, user };
+};
