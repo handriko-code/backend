@@ -6,12 +6,10 @@ import { generateReferralCode } from '../utils/referral';
 import { createReferralAndReward } from './referralService';
 import { createWelcomeCoupon } from './couponService';
 import { sendEmail } from '../utils/email';
-import { Param } from '@prisma/client/runtime/library';
 
 import handlebars from 'handlebars';
 import path from 'path';
 import fs from 'fs';
-
 
 export const register = async (data: RegisterDTO) => {
   const { email, password, name, role, referralCode } = data;
@@ -28,19 +26,27 @@ export const register = async (data: RegisterDTO) => {
       password: hashedPassword,
       role,
       referralCode: generateReferralCode(),
+      isVerified: false,
     },
   });
 
-  //untuk hadlebars dan nodemailer
+  // Path template
   const templatePath = path.join(
-    __dirname, // artinya mnunjuk pada direktory saat ini services/authServices.ts
-    "../templates",
-    "register-template.hbs"
+    __dirname,
+    '../templates',
+    'register-template.hbs'
   );
-
   const templateSource = fs.readFileSync(templatePath, 'utf-8');
   const compiledTemplate = handlebars.compile(templateSource);
-  const html = compiledTemplate({name:user.name, email: user.email})
+
+  //URL verifikasi berasal dari env
+  const verifyUrl = `${process.env.BACKEND_URL}/api/auth/verify?email=${encodeURIComponent(user.email)}`;
+
+  const html = compiledTemplate({
+    name: user.name,
+    email: user.email,
+    verifyUrl,
+  });
 
   await sendEmail(
     user.email,
@@ -48,7 +54,6 @@ export const register = async (data: RegisterDTO) => {
     'Thanks for registering at Event Application',
     html
   );
-  
 
   if (referralCode) {
     await createReferralAndReward(referralCode, user.id);
@@ -65,6 +70,8 @@ export const login = async (data: LoginDTO) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error('Invalid credentials.');
+
+  if (!user.isVerified) throw new Error('Please verify your email first.');
 
   const isPasswordValid = await comparePassword(password, user.password);
   if (!isPasswordValid) throw new Error('Invalid credentials.');
