@@ -1,3 +1,22 @@
-node_modules
-# Keep environment variables out of version control
+# Ignore node modules
+node_modules/
+
+# Environment variables
 .env
+
+# Build output
+.next/
+dist/
+build/
+
+# OS and editor files
+.DS_Store
+*.log
+*.swp
+.idea/
+.vscode/
+
+# Optional: prevent pushing large files by mistake
+*.zip
+*.tar
+*.tar.gz
