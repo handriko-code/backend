@@ -9,17 +9,17 @@ const router = Router();
 
 router.use(authMiddleware);
 
-// Allow CUSTOMER to upload before roleMiddleware block
+// mengizinkan CUSTOMER upload sebelum roleMiddleware block
 router.post(
   '/:transactionId/upload',
   upload.single('file'),
   catchAsync(transactionController.uploadPaymentProof)
 );
 
-// Allow CUSTOMER to create transaction
+// CUSTOMER melakukan transaction beli tiket
 router.post('/', catchAsync(transactionController.createTransaction));
 
-// Only ORGANIZER can access below
+// hanya ORGANIZER dapat access
 router.use(roleMiddleware('ORGANIZER'));
 
 router.get('/', catchAsync(transactionController.getAllTransactions));

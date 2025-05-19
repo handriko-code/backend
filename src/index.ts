@@ -10,7 +10,6 @@ import userRewardRouter from './routers/userRewardRouter';
 
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -19,7 +18,6 @@ app.use(cors({
   credentials: true
 }));
 
-
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -27,12 +25,12 @@ app.get('/', (req, res) => {
 });
 
 
-app.use('/api/auth', authRouter);
-app.use('/api/events', eventRouter);
-app.use('/api/public/events', publicEventRouter);
-app.use('/api/transaction', transactionRouter)
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/rewards', userRewardRouter);
+app.use('/api/auth', authRouter); // Login & Register
+app.use('/api/events', eventRouter); // CRUD event - untuk organizer membuat dan mengatur event.
+app.use('/api/public/events', publicEventRouter); // Browse event (Customer/Public)
+app.use('/api/transaction', transactionRouter); // Customer Beli tiket
+app.use('/api/dashboard', dashboardRouter); // untuk melihat data statistik event (khusus organizer).
+app.use('/api/rewards', userRewardRouter); // untuk sitem Kupon, poin, referral
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

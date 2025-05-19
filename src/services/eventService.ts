@@ -62,3 +62,32 @@ export const deleteEvent = async (organizerId: string, eventId: string) => {
     where: { id: eventId },
   });
 };
+
+export const getEventAttendees = async (organizerId: string, eventId: string) => {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, organizerId },
+  });
+
+  if (!event) throw new Error('Event not found or not authorized');
+
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      eventId,
+      status: 'ACCEPTED',
+    },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return transactions.map((trx) => ({
+    userId: trx.user.id,
+    name: trx.user.name,
+    email: trx.user.email,
+    quantity: trx.quantity,
+    totalPrice: trx.totalPrice,
+  }));
+};

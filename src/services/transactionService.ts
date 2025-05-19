@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma';
 import { sendEmail } from '../utils/email';
 import { generateShortId } from '../utils/id';
 import { TransactionStatus } from '../interfaces/transaction.interface';
-import path from 'path';
+//import path from 'path';
 
 export const createTransaction = async (userId: string, data: {
   eventId: string;

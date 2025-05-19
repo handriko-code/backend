@@ -14,7 +14,7 @@ function getErrorMessage(error: unknown): string {
       const { period, year, month } = getStatisticsSchema.parse(req.query);
       const organizerId = (req as any).user.id;
   
-      // log untuk debug
+      // log untuk debug - akan di delete
       console.log('Organizer ID:', organizerId);
       console.log('Query Params:', { period, year, month });
   

@@ -1,7 +1,7 @@
 import { prisma } from '../lib/prisma';
 export const getStatistics = async (organizerId: string, period: 'year' | 'month' | 'day', year?: number, month?: number) => {
 
-// ✅ Tambahkan log input parameter
+// menambahkan log input parameter
   console.log('Fetching stats for:', { organizerId, period, year, month });
 
   const where: any = {
@@ -30,7 +30,7 @@ export const getStatistics = async (organizerId: string, period: 'year' | 'month
     include: { event: true },
   });
 
-  // ✅ Tambahkan log hasil dari Prisma
+  // debug - hasil dari Prisma
   console.log('Fetched transactions:', transactions);
   // group by period
   const grouped: Record<string, { totalTickets: number; totalIncome: number }> = {};

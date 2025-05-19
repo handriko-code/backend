@@ -15,7 +15,7 @@ function getErrorMessage(error: unknown): string {
       const { eventId, quantity } = req.body;
   
       const transaction = await transactionService.createTransaction(userId, { eventId, quantity });
-      res.status(201).json(transaction);
+      res.status(201).json(transaction); // hasil dikembalikan ke frontend
     } catch (error) {
       res.status(400).json({ message: getErrorMessage(error) });
     }
@@ -26,6 +26,7 @@ function getErrorMessage(error: unknown): string {
       const userId = (req as any).user.id;
       const file = req.file;
   
+      //debug - akan di delete
       console.log('[UPLOAD] Transaction ID:', transactionId);
       console.log('[UPLOAD] User ID:', userId);
       console.log('[UPLOAD] File Info:', file);

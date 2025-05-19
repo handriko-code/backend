@@ -16,6 +16,7 @@ router.get('/', catchAsync(eventController.getMyEvents));
 router.get('/:eventId', catchAsync(eventController.getEventDetail));
 router.put('/:eventId', catchAsync(eventController.updateEvent));
 router.delete('/:eventId', catchAsync(eventController.deleteEvent));
+router.get('/:eventId/attendees', catchAsync(eventController.getEventAttendees));
 
 
 export default router;

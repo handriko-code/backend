@@ -46,7 +46,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-  console.log('BODY:', req.body);
+  console.log('BODY:', req.body);// debug - akan di delete
 
   try {
     const data = loginSchema.parse(req.body);

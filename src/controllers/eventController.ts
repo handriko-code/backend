@@ -12,7 +12,7 @@ function getErrorMessage(error: unknown): string {
 
   export const createEvent = async (req: Request, res: Response) => {
     try {
-      console.log('Received body:', req.body);
+      console.log('Received body:', req.body);// debug - akan di delete
       const data = createEventSchema.parse(req.body);
       const organizerId = (req as any).user.id;
   
@@ -75,5 +75,17 @@ export const deleteEvent = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Event deleted successfully' });
   } catch (error) {
     res.status(400).json({ message: getErrorMessage(error) });
+  }
+};
+
+export const getEventAttendees = async (req: Request, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const organizerId = (req as any).user.id;
+
+    const attendees = await eventService.getEventAttendees(organizerId, eventId);
+    res.status(200).json(attendees);
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to fetch attendees' });
   }
 };

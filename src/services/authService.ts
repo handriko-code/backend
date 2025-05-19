@@ -30,7 +30,7 @@ export const register = async (data: RegisterDTO) => {
     },
   });
 
-  // Path template
+  // Path template kirim email ke Customer yg register guna melakukan verifikasi
   const templatePath = path.join(
     __dirname,
     '../templates',
@@ -74,8 +74,43 @@ export const login = async (data: LoginDTO) => {
   if (!user.isVerified) throw new Error('Please verify your email first.');
 
   const isPasswordValid = await comparePassword(password, user.password);
-  if (!isPasswordValid) throw new Error('Invalid credentials.');
+  if (!isPasswordValid) throw new Error('Invalid Password.');
 
   const token = signToken({ id: user.id, role: user.role });
   return { token, user };
+};
+
+export const getEventAttendees = async (organizerId: string, eventId: string) => {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, organizerId },
+  });
+
+  if (!event) throw new Error('Event not found or not authorized');
+
+  const attendees = await prisma.transaction.findMany({
+    where: {
+      eventId,
+      status: 'ACCEPTED',
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return attendees.map((trx) => ({
+    userId: trx.user.id,
+    name: trx.user.name,
+    email: trx.user.email,
+    quantity: trx.quantity,
+    totalPrice: trx.totalPrice,
+  }));
 };
